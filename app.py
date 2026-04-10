@@ -529,6 +529,13 @@ class BotRunner:
 # ---------------------------------------------------------------------------
 app = Flask(__name__)
 app.secret_key = FLASK_SECRET
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_PATH="/",
+    SESSION_COOKIE_MAX_AGE=86400 * 7,  # 7 days
+    PERMANENT_SESSION_LIFETIME=86400 * 7,
+)
 
 
 def require_login(f):
