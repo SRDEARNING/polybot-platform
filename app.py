@@ -240,29 +240,32 @@ class PolyAPI:
             return None
     
     def derive_api_creds(self):
-        """Derive API credentials from private key."""
+        """Derive API credentials from private key. Idempotent — only does it once."""
         if not self.private_key:
             return None
+        if self.api_creds is not None:
+            return self.api_creds
         try:
-            client = self.get_clob_client()
-            if not client:
-                return None
-            # Create fresh client without creds to derive them
             from py_clob_client.client import ClobClient
             tmp = ClobClient(host=CLOB_HOST, chain_id=137, key=self.private_key)
             self.api_creds = tmp.create_or_derive_api_creds()
-            # Update the main client with creds
             if self._client:
                 self._client.set_api_creds(self.api_creds)
+            logger.info("API credentials derived successfully")
             return self.api_creds
         except Exception as e:
             logger.error(f"API creds derivation failed: {e}")
             return None
+            return None
     
     def get_balance(self):
-        """Get USDC balance."""
+        """Get USDC balance — cached for 30s to avoid excessive API calls."""
         if not self.private_key or not self.api_creds:
             return None
+        # Return cached value if recent
+        if hasattr(self, '_cached_balance') and hasattr(self, '_balance_time'):
+            if time.time() - self._balance_time < 30:
+                return self._cached_balance
         try:
             client = self.get_clob_client()
             if not client:
@@ -271,7 +274,10 @@ class PolyAPI:
             result = client.get_balance_allowance(
                 BalanceAllowanceParams(asset_type=AssetType.COLLATERAL)
             )
-            return int(result.get("balance", "0")) / 1e6
+            bal = int(result.get("balance", "0")) / 1e6
+            self._cached_balance = bal
+            self._balance_time = time.time()
+            return bal
         except Exception as e:
             logger.error(f"Balance fetch failed: {e}")
             return None
