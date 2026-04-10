@@ -68,13 +68,6 @@ def get_db():
     return g.db
 
 
-@g.teardown_appcontext
-def close_db(exc):
-    db = g.pop("db", None)
-    if db:
-        db.close()
-
-
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
