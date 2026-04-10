@@ -1,7 +1,6 @@
-Flask==3.1.0
-python-dotenv==1.0.1
-gunicorn==23.0.0
-requests==2.32.3
-py-clob-client==0.2.0
-web3==6.20.2
-itsdangerous==2.2.0
+Flask
+python-dotenv
+gunicorn
+requests
+py-clob-client
+web3
