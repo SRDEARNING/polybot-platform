@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Setup — PolyBot Platform</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#06090f;color:#f0f6fc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:20px}
+.container{max-width:700px;margin:0 auto}
+.header{text-align:center;padding:32px 0}
+.logo{font-size:32px}
+h1{font-size:24px;font-weight:700;margin:8px 0}
+.subtitle{color:#8b949e;font-size:14px}
+
+/* Steps indicator */
+.steps{display:flex;justify-content:center;gap:8px;margin:24px 0 32px}
+.step{display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;color:#4b5563}
+.step.active{background:rgba(56,189,248,.1);color:#38bdf8}
+.step.done{color:#34d399}
+.step-num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.step.active .step-num{background:#38bdf8;color:#06090f}
+.step.done .step-num{background:#34d399;color:#06090f}
+.step-num{border:1px solid #374151}
+
+/* Cards */
+.step-card{background:#0d1117;border:1px solid #1e2a3a;border-radius:14px;padding:28px;margin-bottom:16px}
+.step-card h2{font-size:18px;font-weight:700;margin-bottom:4px}
+.step-card>p{color:#8b949e;font-size:13px;margin-bottom:20px;line-height:1.5}
+.step-card.done{border-color:#166534;opacity:.7}
+
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:13px;color:#8b949e;margin-bottom:6px;font-weight:500}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 14px;background:#161b22;border:1px solid #1e2a3a;border-radius:8px;color:#f0f6fc;font-size:14px;outline:none;transition:.2s;font-family:inherit}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:#38bdf8;box-shadow:0 0 0 3px rgba(56,189,248,.1)}
+.form-group select{cursor:pointer}
+.form-group textarea{resize:vertical;min-height:60px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:500px){.form-row{grid-template-columns:1fr}}
+
+.btn{padding:11px 24px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:.2s;border:none}
+.btn-primary{background:linear-gradient(135deg,#38bdf8,#6366f1);color:#fff}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px)}
+.btn-ghost{background:transparent;border:1px solid #1e2a3a;color:#8b949e}
+.btn-ghost:hover{border-color:#8b949e;color:#f0f6fc}
+.btn-success{background:#238636;color:#fff}
+.btn-success:hover{background:#2ea043}
+.btn-full{width:100%}
+
+.wallet-preview{background:#161b22;border:1px solid #1e2a3a;border-radius:8px;padding:14px;display:flex;align-items:center;gap:12px;margin-top:12px}
+.wallet-icon{width:36px;height:36px;background:linear-gradient(135deg,#f97316,#a855f7);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.wallet-info{flex:1}
+.wallet-addr{font-family:monospace;font-size:13px;color:#38bdf8}
+.wallet-label{font-size:11px;color:#4b5563}
+
+.flash{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:16px;text-align:center}
+.flash-error{background:#450a0a;color:#fca5a5;border:1px solid #7f1d1d}
+.flash-success{background:#052e16;color:#86efac;border:1px solid #166534}
+
+.badge{display:inline-flex;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600}
+.badge-green{background:rgba(52,211,153,.15);color:#34d399}
+
+.help-text{font-size:12px;color:#4b5563;margin-top:4px}
+
+.deploy-section{background:linear-gradient(135deg,rgba(56,189,248,.05),rgba(99,102,241,.05));border:1px solid #1e2a3a;border-radius:14px;padding:28px;text-align:center;margin-top:24px}
+.deploy-section h2{margin-bottom:8px}
+.deploy-section p{color:#8b949e;font-size:13px;margin-bottom:20px}
+.checklist{text-align:left;margin:16px auto;max-width:300px}
+.checklist li{padding:8px 0;font-size:14px;display:flex;align-items:center;gap:8px;color:#8b949e}
+.checklist li.ready{color:#34d399}
+.checkmark{font-size:16px}
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="logo">🤖</div>
+        <h1>Setup Your Bot</h1>
+        <p class="subtitle">3 simple steps to start trading automatically</p>
+    </div>
+    
+    <!-- Steps Indicator -->
+    <div class="steps">
+        <div class="step {% if wallet %}done{% else %}active{% endif %}">
+            <span class="step-num">1</span>
+            Connect Wallet
+        </div>
+        <div class="step {% if strategy %}done{% elif wallet %}active{% endif %}">
+            <span class="step-num">2</span>
+            Design Strategy
+        </div>
+        <div class="step {% if wallet and strategy %}active{% endif %}">
+            <span class="step-num">3</span>
+            Deploy
+        </div>
+    </div>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat,msg in messages %}
+        <div class="flash flash-{{ 'error' if cat=='error' else 'success' }}">{{ msg }}</div>
+    {% endfor %}
+    {% endwith %}
+    
+    <!-- Step 1: Connect Wallet -->
+    <div class="step-card {% if wallet %}done{% endif %}">
+        <h2>Step 1: Connect Your Wallet</h2>
+        <p>Enter your MetaMask (or compatible wallet) private key. This is used to sign trades on Polymarket. Your key is stored locally and never sent to third parties.</p>
+        
+        {% if wallet %}
+        <div class="wallet-preview">
+            <div class="wallet-icon">🦊</div>
+            <div class="wallet-info">
+                <div class="wallet-addr">{{ wallet.address[:8] }}...{{ wallet.address[-6:] }}</div>
+                <div class="wallet-label">Connected — <span class="badge badge-green">Active</span></div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <form method="post" action="/setup/wallet" style="{% if wallet %}margin-top:16px{% endif %}">
+            <div class="form-group">
+                <label>Private Key</label>
+                <input type="password" name="private_key" placeholder="0x..." spellcheck="false" value="{% if wallet %}••••••••••••••••{% endif %}" required>
+                <div class="help-text">Export from MetaMask: Account → Account Details → Export Private Key</div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">{% if wallet %}Update Wallet{% else %}Connect Wallet{% endif %}</button>
+        </form>
+    </div>
+    
+    <!-- Step 2: Design Strategy -->
+    <div class="step-card {% if strategy %}done{% endif %}">
+        <h2>Step 2: Design Your Strategy</h2>
+        <p>Define when the bot should buy, sell, and how much to risk. These settings control the automated trading behavior.</p>
+        
+        {% if strategy %}
+        <div style="padding:12px;background:#161b22;border-radius:8px;margin-bottom:16px">
+            <strong>{{ strategy.name }}</strong>
+            <br><span style="font-size:12px;color:#8b949e">
+                Market: {{ strategy.market_type }} · Created: {{ strategy.created_at[:10] }}
+            </span>
+        </div>
+        {% endif %}
+        
+        <form method="post" action="/setup/strategy">
+            <div class="form-group">
+                <label>Strategy Name</label>
+                <input type="text" name="strategy_name" placeholder="e.g. ETH 5min Scalper" value="{% if strategy %}{{ strategy.name }}{% endif %}" required>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Market Type</label>
+                    <select name="market_type">
+                        <option value="eth_5m" selected>ETH 5min Up/Down</option>
+                        <option value="btc_5m" disabled>BTC 5min Up/Down (coming soon)</option>
+                        <option value="custom" disabled>Custom Markets (coming soon)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Trade Direction</label>
+                    <select name="direction">
+                        <option value="both" {% if strategy and strategy.config_json and 'both' in strategy.config_json %}selected{% endif %}>Both (Up & Down)</option>
+                        <option value="up" {% if strategy and strategy.config_json and 'up' in strategy.config_json %}selected{% endif %}>Only UP</option>
+                        <option value="down" {% if strategy and strategy.config_json and 'down' in strategy.config_json %}selected{% endif %}>Only DOWN</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Buy Threshold (cents)</label>
+                    <input type="number" name="threshold" step="1" min="1" max="99" value="{% if strategy and strategy.config_json %}45{% else %}45{% endif %}" required>
+                    <div class="help-text">Buy when the side you want is priced below this value (in cents). Lower = better entry price.</div>
+                </div>
+                <div class="form-group">
+                    <label>Trade Size ($ USDC)</label>
+                    <input type="number" name="trade_size" step="1" min="1" value="{% if strategy and strategy.config_json %}10{% else %}10{% endif %}" required>
+                    <div class="help-text">Amount to spend per trade. Start small!</div>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Take Profit (cents)</label>
+                    <input type="number" name="take_profit" step="1" min="50" max="99" value="80">
+                    <div class="help-text">Sell when position reaches this value</div>
+                </div>
+                <div class="form-group">
+                    <label>Stop Loss (cents)</label>
+                    <input type="number" name="stop_loss" step="1" min="1" max="40" value="20">
+                    <div class="help-text">Abandon if position drops below this</div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Check Interval (seconds)</label>
+                <input type="number" name="check_interval" step="5" min="5" value="30">
+                <div class="help-text">How often the bot checks for new opportunities. 5min markets resolve every 5 minutes.</div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-full">{% if strategy %}Update Strategy{% else %}Save Strategy{% endif %}</button>
+        </form>
+    </div>
+    
+    <!-- Step 3: Deploy -->
+    {% if wallet and strategy %}
+    <div class="deploy-section">
+        <h2>🚀 Ready to Deploy!</h2>
+        <p>Everything is configured. Launch your bot and let it start trading.</p>
+        
+        <ul class="checklist">
+            <li class="ready"><span class="checkmark">✅</span> Wallet connected</li>
+            <li class="ready"><span class="checkmark">✅</span> Strategy defined</li>
+            <li class="ready" id="funded"><span class="checkmark">⏳</span> Wallet funded with USDC on Polygon</li>
+        </ul>
+        
+        <form method="post" action="/bot/deploy">
+            <div class="form-group" style="max-width:300px;margin:0 auto 16px;text-align:left">
+                <label>Bot Name (optional)</label>
+                <input type="text" name="bot_name" placeholder="My First Bot" value="">
+            </div>
+            <button type="submit" class="btn btn-success btn-full" style="max-width:300px;margin:0 auto">
+                🚀 Deploy Bot
+            </button>
+        </form>
+        
+        <a href="/dashboard" class="btn btn-ghost" style="margin-top:12px;display:inline-block;max-width:300px;width:100%">Go to Dashboard →</a>
+    </div>
+    {% endif %}
+</div>
+</body>
+</html>

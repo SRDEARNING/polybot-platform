@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PolyBot Dashboard</title>
+<style>
+:root{--bg:#06090f;--bg2:#0d1117;--bg3:#161b22;--bg4:#1c2333;--border:#1e2a3a;--text:#f0f6fc;--text2:#8b949e;--muted:#4b5563;--green:#34d399;--green-bg:rgba(52,211,153,.1);--red:#f87171;--red-bg:rgba(248,113,113,.1);--blue:#38bdf8;--blue-bg:rgba(56,189,248,.1);--yellow:#fbbf24;--purple:#a78bfa}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px}
+
+/* NAV */
+nav{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.nav-brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px}
+.nav-brand span{font-size:20px}
+.nav-right{display:flex;align-items:center;gap:12px}
+.nav-email{color:var(--text2);font-size:12px}
+.nav-logout{color:var(--text2);text-decoration:none;font-size:12px;padding:4px 10px;border:1px solid var(--border);border-radius:6px}
+.nav-logout:hover{color:var(--text);border-color:var(--text2)}
+.nav-setup{color:var(--blue);text-decoration:none;font-size:12px;padding:4px 10px;border:1px solid rgba(56,189,248,.3);border-radius:6px}
+
+/* MAIN */
+.main{max-width:1200px;margin:0 auto;padding:20px}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:20px}
+.stat{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px;position:relative;overflow:hidden}
+.stat-icon{font-size:22px;margin-bottom:6px}
+.stat-label{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:4px}
+.stat-value{font-size:24px;font-weight:700}
+.stat-sub{font-size:11px;color:var(--text2);margin-top:4px}
+.stat-glow{position:absolute;top:-20px;right:-20px;width:60px;height:60px;border-radius:50%;filter:blur(30px);opacity:.3;pointer-events:none}
+.stat.green .stat-value{color:var(--green)}
+.stat.blue .stat-value{color:var(--blue)}
+.stat.yellow .stat-value{color:var(--yellow)}
+.stat.red .stat-value{color:var(--red)}
+.stat.green .stat-glow{background:var(--green)}
+.stat.blue .stat-glow{background:var(--blue)}
+
+/* SECTIONS */
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:12px;margin-bottom:16px;overflow:hidden}
+.section-hd{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.section-hd h2{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+.section-hd .badge{font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(56,189,248,.15);color:var(--blue)}
+.section-hd .meta{font-size:11px;color:var(--text2)}
+
+/* CARDS GRID (markets) */
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;padding:14px 18px}
+.mcard{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px}
+.mtitle{font-size:13px;font-weight:600;margin-bottom:8px;line-height:1.4}
+.mprice{display:flex;gap:6px}
+.mprice .up{flex:1;text-align:center;padding:6px;border-radius:6px;background:var(--green-bg);color:var(--green);font-weight:600;font-size:13px}
+.mprice .down{flex:1;text-align:center;padding:6px;border-radius:6px;background:var(--red-bg);color:var(--red);font-weight:600;font-size:13px}
+.minfo{display:flex;justify-content:space-between;margin-top:6px;font-size:10px;color:var(--muted)}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse}
+thead th{text-align:left;padding:10px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.3px;color:var(--text2);border-bottom:1px solid var(--border);font-weight:600;white-space:nowrap}
+tbody td{padding:8px 14px;border-bottom:1px solid rgba(30,42,58,.5);font-size:13px;white-space:nowrap}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--bg4)}
+.empty-row{text-align:center;padding:24px!important;color:var(--muted)}
+
+/* BOTS */
+.bots-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;padding:14px 18px}
+.bot-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px}
+.bot-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.bot-name{font-weight:600;font-size:14px}
+.bot-status{font-size:10px;padding:3px 8px;border-radius:10px;font-weight:600}
+.bot-status.running{background:var(--green-bg);color:var(--green)}
+.bot-status.stopped{background:var(--red-bg);color:var(--red)}
+.bot-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:10px 0}
+.bot-stat{text-align:center}
+.bot-stat label{display:block;font-size:9px;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.bot-stat span{font-size:13px;font-weight:600}
+.bot-actions{display:flex;gap:6px;margin-top:8px}
+.bot-actions button{flex:1;padding:6px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text2);transition:.15s}
+.bot-actions button:hover{border-color:var(--text2);color:var(--text)}
+.bot-actions .start-btn{border-color:rgba(52,211,153,.3);color:var(--green)}
+.bot-actions .start-btn:hover{background:var(--green-bg)}
+.bot-actions .stop-btn{border-color:rgba(248,113,113,.3);color:var(--red)}
+.bot-actions .stop-btn:hover{background:var(--red-bg)}
+
+/* LOG */
+.log{padding:12px 18px;max-height:180px;overflow-y:auto}
+.log-e{font-family:'SF Mono',Monaco,monospace;font-size:11px;padding:2px 0;display:flex;gap:8px}
+.log-e .ts{color:var(--muted);white-space:nowrap}
+.log-e .lvl{font-weight:700;width:36px;flex-shrink:0}
+.log-e.info .lvl{color:var(--blue)}
+.log-e.error .lvl{color:var(--red)}
+.log-e.warn .lvl{color:var(--yellow)}
+.log-e .msg{color:var(--text2)}
+
+/* CHART */
+.chart{padding:16px 18px;display:flex;align-items:flex-end;gap:1px;height:80px;overflow:hidden}
+.chart-bar{flex:1;background:var(--green);border-radius:1px 1px 0 0;min-height:1px}
+.chart-bar.neg{background:var(--red)}
+
+/* WALLET */
+.wallet-bar{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+.wallet-left{display:flex;align-items:center;gap:10px}
+.wallet-icon{width:32px;height:32px;background:linear-gradient(135deg,#f97316,#a855f7);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.wallet-addr{font-family:monospace;font-size:12px;color:var(--blue)}
+.wallet-label{font-size:10px;color:var(--muted)}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+    .stats{grid-template-columns:1fr 1fr}
+    .nav-email{display:none}
+}
+@media(max-width:480px){.stats{grid-template-columns:1fr}}
+
+/* Pulse */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 2s infinite}
+</style>
+</head>
+<body>
+
+<nav>
+    <div class="nav-brand"><span>🤖</span> PolyBot <span style="font-weight:400;font-size:13px;color:var(--text2)">Dashboard</span></div>
+    <div class="nav-right">
+        {% if not wallet or not strategy %}
+        <a href="/setup" class="nav-setup">⚡ Complete Setup</a>
+        {% endif %}
+        <span class="nav-email">{{ user_email }}</span>
+        <a href="/logout" class="nav-logout">Logout</a>
+    </div>
+</nav>
+
+<div class="main">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat,msg in messages %}
+    <div style="padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:12px;text-align:center;{% if cat=='error' %}background:#450a0a;color:#fca5a5;border:1px solid #7f1d1d{% else %}background:#052e16;color:#86efac;border:1px solid #166534{% endif %}">{{ msg }}</div>
+    {% endfor %}
+    {% endwith %}
+
+    <!-- Wallet Bar -->
+    {% if wallet %}
+    <div class="wallet-bar">
+        <div class="wallet-left">
+            <div class="wallet-icon">🦊</div>
+            <div>
+                <div class="wallet-addr">{{ wallet.address }}</div>
+                <div class="wallet-label">Connected Wallet</div>
+            </div>
+        </div>
+        <a href="/setup" style="font-size:12px;color:var(--text2);text-decoration:none">Change wallet →</a>
+    </div>
+    {% endif %}
+
+    <!-- Stats -->
+    <div class="stats">
+        <div class="stat blue">
+            <div class="stat-glow"></div>
+            <div class="stat-icon">💰</div>
+            <div class="stat-label">USDC Balance</div>
+            <div class="stat-value" id="vBalance">—</div>
+            <div class="stat-sub" id="vBalanceSub">Connect wallet to see balance</div>
+        </div>
+        <div class="stat yellow">
+            <div class="stat-glow"></div>
+            <div class="stat-icon">📊</div>
+            <div class="stat-label">Portfolio Value</div>
+            <div class="stat-value" id="vPortfolio">—</div>
+            <div class="stat-sub" id="vPortfolioSub">Balance + open positions</div>
+        </div>
+        <div class="stat green">
+            <div class="stat-glow"></div>
+            <div class="stat-icon">📈</div>
+            <div class="stat-label">Total P&L</div>
+            <div class="stat-value" id="vPnl">—</div>
+            <div class="stat-sub" id="vPnlSub">From all bots</div>
+        </div>
+        <div class="stat">
+            <div class="stat-glow" style="background:var(--purple)"></div>
+            <div class="stat-icon">🌍</div>
+            <div class="stat-label">Server Status</div>
+            <div class="stat-value" id="vGeo" style="font-size:18px">—</div>
+            <div class="stat-sub" id="vGeoSub">Checking...</div>
+        </div>
+    </div>
+
+    <!-- Markets -->
+    <div class="section">
+        <div class="section-hd">
+            <h2><span class="live-dot"></span> Live ETH 5min Markets <span class="badge" id="marketCount">0 active</span></h2>
+            <span class="meta" id="marketRefresh">—</span>
+        </div>
+        <div class="mgrid" id="mgrid">
+            <div style="padding:24px;color:var(--muted);text-align:center">Loading markets…</div>
+        </div>
+    </div>
+
+    <!-- Bots -->
+    <div class="section">
+        <div class="section-hd">
+            <h2>🤖 Your Bots</h2>
+            {% if wallet and strategy %}
+            <span class="meta">{{ bots|length }} deployed</span>
+            {% endif %}
+        </div>
+        {% if bots %}
+        <div class="bots-grid" id="botsGrid">
+            {% for b in bots %}
+            <div class="bot-card" id="bot-{{ b.id }}">
+                <div class="bot-top">
+                    <span class="bot-name">{{ b.name }}</span>
+                    <span class="bot-status {{ b.status }}">{{ b.status|upper }}</span>
+                </div>
+                <div class="bot-stats">
+                    <div class="bot-stat"><label>Trades</label><span id="bot-trades-{{ b.id }}">{{ b.total_trades }}</span></div>
+                    <div class="bot-stat"><label>P&L</label><span id="bot-pnl-{{ b.id }}" style="color:{{ 'var(--green)' if b.total_pnl >= 0 else 'var(--red)' }}">${{ "%.2f"|format(b.total_pnl) }}</span></div>
+                    <div class="bot-stat"><label>Errors</label><span id="bot-err-{{ b.id }}">{{ b.error_count }}</span></div>
+                </div>
+                <div class="bot-actions">
+                    {% if b.status != 'running' %}
+                    <form method="post" action="/bot/{{ b.id }}/start" style="flex:1">
+                        <button type="submit" class="start-btn">▶ Start</button>
+                    </form>
+                    {% else %}
+                    <form method="post" action="/bot/{{ b.id }}/stop" style="flex:1">
+                        <button type="submit" class="stop-btn">⏹ Stop</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="padding:32px;text-align:center;color:var(--muted)">
+            <p style="font-size:32px;margin-bottom:8px">🚀</p>
+            {% if wallet and strategy %}
+            <p>No bots deployed yet. <a href="/setup" style="color:var(--blue)">Deploy one →</a></p>
+            {% elif not wallet %}
+            <p>Connect your wallet first. <a href="/setup" style="color:var(--blue)">Go to Setup →</a></p>
+            {% elif not strategy %}
+            <p>Create a strategy to get started. <a href="/setup" style="color:var(--blue)">Go to Setup →</a></p>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- P&L Chart -->
+    <div class="section">
+        <div class="section-hd">
+            <h2>📉 P&L Trend</h2>
+        </div>
+        <div class="chart" id="pnlChart">
+            <span style="margin:auto;color:var(--muted);font-size:12px">Waiting for data…</span>
+        </div>
+    </div>
+
+    <!-- Trade History -->
+    <div class="section">
+        <div class="section-hd">
+            <h2>📋 Recent Trades</h2>
+            <span class="meta">All bots · Last 50</span>
+        </div>
+        <div style="overflow-x:auto">
+            <table>
+                <thead>
+                    <tr><th>Time</th><th>Market</th><th>Side</th><th>Price</th><th>Size</th><th>Status</th><th>Result</th><th>P&L</th></tr>
+                </thead>
+                <tbody id="tradesBody">
+                    <tr><td colspan="8" class="empty-row">No trades yet — bot will log trades here</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Activity Log -->
+    <div class="section">
+        <div class="section-hd">
+            <h2>📝 Activity Log</h2>
+        </div>
+        <div class="log" id="logArea">
+            <div class="log-e info"><span class="ts">—</span><span class="lvl">INFO</span><span class="msg">Dashboard loaded, waiting for real-time data…</span></div>
+        </div>
+    </div>
+
+    <!-- Positions -->
+    <div class="section">
+        <div class="section-hd">
+            <h2>📦 Open Positions</h2>
+        </div>
+        <div style="overflow-x:auto">
+            <table>
+                <thead>
+                    <tr><th>Market</th><th>Side</th><th>Size</th><th>Avg Price</th><th>Current</th><th>P&L</th></tr>
+                </thead>
+                <tbody id="posBody">
+                    <tr><td colspan="6" class="empty-row">No open positions</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+const fmt = v => v != null ? '$'+Number(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
+const pct = v => v != null ? (v>=0?'+':'') + Number(v).toFixed(1)+'%' : '—';
+
+async function refresh() {
+    try {
+        const r = await fetch('/api/state');
+        const d = await r.json();
+        if (d.error) return;
+
+        // Aggregate across all bots
+        let totalBal = 0, totalVal = 0, totalPnl = 0, anyBlock = false, blockLoc = '';
+        let allTrades = [], allPos = [], allActivity = [], allBalHist = [];
+        
+        d.bots?.forEach(b => {
+            if (b.balance != null) totalBal = b.balance;
+            if (b.total_value) totalVal = b.total_value;
+            const pnl = (b.trades || []).reduce((s,t) => s + (t.pnl||0), 0);
+            totalPnl += pnl;
+            if (b.geoblock?.blocked) { anyBlock = true; blockLoc = (b.geoblock.country||'')+' '+(b.geoblock.region||''); }
+            allTrades.push(...(b.recent_trades||[]));
+            allPos.push(...(b.positions||[]));
+            allActivity.push(...(b.activity||[]).map(a=>({...a,bot:b.name})));
+            allBalHist.push(...(b.balance_history||[]));
+        });
+
+        // Stats
+        document.getElementById('vBalance').textContent = fmt(totalBal);
+        document.getElementById('vBalanceSub').textContent = wallet ? 'Live (refreshing every 10s)' : '—';
+        document.getElementById('vPortfolio').textContent = fmt(totalBal + totalVal);
+        document.getElementById('vPortfolioSub').textContent = allPos.length + ' open position(s)';
+        
+        const pnlEl = document.getElementById('vPnl');
+        pnlEl.textContent = (totalPnl>=0?'+':'') + fmt(totalPnl);
+        pnlEl.style.color = totalPnl >= 0 ? 'var(--green)' : totalPnl < 0 ? 'var(--red)' : '';
+        document.getElementById('vPnlSub').textContent = allTrades.length + ' total trade(s)';
+        
+        const geoEl = document.getElementById('vGeo');
+        if (anyBlock) { geoEl.textContent = '🔴 Blocked'; geoEl.style.color = 'var(--red)'; document.getElementById('vGeoSub').textContent = blockLoc; }
+        else if (!wallet){ geoEl.textContent = '—'; document.getElementById('vGeoSub').textContent = 'Connect wallet to check'; }
+        else { geoEl.textContent = '🟢 Clear'; geoEl.style.color = 'var(--green)'; document.getElementById('vGeoSub').textContent = 'No geo restrictions'; }
+
+        // Markets
+        if (d.bots?.[0]?.markets) {
+            const mkts = d.bots[0].markets;
+            document.getElementById('marketCount').textContent = mkts.length + ' active';
+            document.getElementById('marketRefresh').textContent = 'Updated ' + new Date().toLocaleTimeString();
+            document.getElementById('mgrid').innerHTML = mkts.map(m => {
+                const prices = JSON.parse(m.outcomePrices||'[]');
+                const p0 = prices[0] ? (parseFloat(prices[0])*100).toFixed(1) : '—';
+                const p1 = prices[1] ? (parseFloat(prices[1])*100).toFixed(1) : '—';
+                const endT = m.endDate ? new Date(m.endDate).toLocaleTimeString() : '—';
+                return `<div class="mcard">
+                    <div class="mtitle">${m.question||m.title||'—'}</div>
+                    <div class="mprice"><div class="up">▲ ${p0}¢</div><div class="down">▼ ${p1}¢</div></div>
+                    <div class="minfo"><span>Vol: $${Number(m.volume||0).toLocaleString()}</span><span>Ends: ${endT}</span></div>
+                </div>`;
+            }).join('');
+        }
+
+        // Trades
+        if (allTrades.length > 0) {
+            document.getElementById('tradesBody').innerHTML = allTrades.sort((a,b)=>b.timestamp.localeCompare(a.timestamp)).slice(0,50).map(t => {
+                const pnlC = (t.pnl||0)>=0?'var(--green)':'var(--red)';
+                return `<tr><td>${(t.timestamp||'').slice(0,19)}</td><td style="max-width:150px;overflow:hidden;text-overflow:ellipsis">${t.question||t.market||'—'}</td><td>${t.side||'—'}</td><td>${t.price?((t.price)*100).toFixed(1)+'¢':'—'}</td><td>$${t.size||'—'}</td><td>${t.order_status||'—'}</td><td>${t.result||'—'}</td><td style="color:${pnlC}">${t.pnl!=null?((t.pnl>=0?'+':'')+fmt(t.pnl)):'—'}</td></tr>`;
+            }).join('');
+        }
+
+        // Positions
+        if (allPos.length > 0) {
+            document.getElementById('posBody').innerHTML = allPos.map(p => {
+                const pnlV = parseFloat(p.cashPnl||0);
+                const pnlC = pnlV>=0?'var(--green)':'var(--red)';
+                return `<tr><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis">${p.title||p.asset||'—'}</td><td>${p.side||'—'}</td><td>${p.size||'—'}</td><td>$${p.avgPrice||'—'}</td><td>$${p.currentPrice||'—'}</td><td style="color:${pnlC}">${pnlV>=0?'+':''}${fmt(pnlV)}</td></tr>`;
+            }).join('');
+        }
+
+        // P&L Chart from balance history
+        if (allBalHist.length > 2) {
+            const bals = allBalHist.map(b => parseFloat(b.usdc_balance||0));
+            const maxV = Math.max(...bals.map(Math.abs), 0.01);
+            document.getElementById('pnlChart').innerHTML = bals.map(v => {
+                const h = Math.max(2, Math.abs(v)/maxV*60);
+                return `<div class="chart-bar${v<0?' neg':''}" style="height:${h}px"></div>`;
+            }).join('');
+        }
+
+        // Activity Log
+        if (allActivity.length > 0) {
+            document.getElementById('logArea').innerHTML = allActivity.slice(0,30).map(a => {
+                const ts = (a.timestamp||'').slice(11,19);
+                const lvl = (a.level||'info').toLowerCase();
+                const botTag = a.bot ? `[${a.bot}] ` : '';
+                return `<div class="log-e ${lvl}"><span class="ts">${ts}</span><span class="lvl">${(a.level||'info').toUpperCase()}</span><span class="msg">${botTag}${a.message||''}</span></div>`;
+            }).join('');
+        }
+
+        log('Data refreshed');
+    } catch(e) {
+        log('Fetch error: '+e.message, 'error');
+    }
+}
+
+let logEntries = [];
+function log(msg, lvl='info') {
+    logEntries.unshift({ts:new Date().toLocaleTimeString(),msg,lvl});
+    if (logEntries.length>100) logEntries.pop();
+    // prepend to log area (keep max 20)
+    const la = document.getElementById('logArea');
+    const top = logEntries.slice(0,20).map(e=>`<div class="log-e ${e.lvl}"><span class="ts">${e.ts}</span><span class="lvl">${e.lvl.toUpperCase()}</span><span class="msg">${e.msg}</span></div>`).join('');
+    // only update if we have actual log entries
+    if (logEntries.length <= 5) la.innerHTML = top;
+}
+
+const wallet = {% if wallet %}true{% else %}false{% endif %};
+refresh();
+setInterval(refresh, 10000);
+</script>
+</body>
+</html>
