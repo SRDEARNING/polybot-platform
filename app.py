@@ -628,7 +628,7 @@ def setup_wallet():
     
     # Derive address from private key
     try:
-        from eth_account import Account
+        from eth_account.account import Account
         acct = Account.from_key(private_key)
         address = acct.address
     except Exception as e:
